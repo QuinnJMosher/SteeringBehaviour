@@ -12,9 +12,14 @@ int main( int argc, char* argv[] )
     SetBackgroundColour(SColour(0, 0, 0, 255));
 
 	Agent agent = Agent(450, 300);
-	agent.SetForce(Point(7, 1));
-	agent.ToggleDrag();
+	//agent.SetForce(Point(7, 1));
+	//agent.ToggleDrag();
 	agent.SetSpeedCap(10);
+
+	Agent runner = Agent(100, 100);
+	runner.SetSpeedCap(10);
+	runner.ChangeBehaviour(Behaviour::Seek);
+	runner.SetTarget(&agent);
 
 	bool buttonDown = false;
 	float time = 0;
@@ -28,6 +33,22 @@ int main( int argc, char* argv[] )
 		if (time > 1.0f / 60.0f) {
 			time -= 1.0f / 60.f;
 
+			if (IsKeyDown('W')) {
+				agent.AddForce(Point(0, 2));
+			}
+
+			if (IsKeyDown('S')) {
+				agent.AddForce(Point(0, -2));
+			}
+
+			if (IsKeyDown('A')) {
+				agent.AddForce(Point(-2, 0));
+			}
+
+			if (IsKeyDown('D')) {
+				agent.AddForce(Point(2, 0));
+			}
+
 			//key to toggle velocity lines
 		    if (IsKeyDown('L')) {
 				if (!buttonDown) {
@@ -39,11 +60,13 @@ int main( int argc, char* argv[] )
 			}
 
 			agent.Update();
+			runner.Update();
 		}
 
 		ClearScreen();
 
 		agent.Draw();
+		runner.Draw();
 
     } while(!FrameworkUpdate());
 

@@ -49,15 +49,25 @@ Point Agent::GetVelocity() {
 }
 
 void Agent::Update() {
+	//find speed by calculating the magnitude of velocity
+	float speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 	//Use Behaviour
 	switch (activeBehavior) {
 	case Behaviour::Seek:
-
+		if (target != nullptr) {
+			//get target's position from the origin of position
+			Point targetRelPos = target->position - position;
+			float targetDist = std::sqrt((target->position.x * target->position.x) + (target->position.y * target->position.y));
+			targetRelPos.x /= targetDist;
+			targetRelPos.y /= targetDist;
+			//add to velocity
+			velocity.x += targetRelPos.x * 5;
+			velocity.y += targetRelPos.y * 5;
+		}
 		break;
 	}
 
 	//cap speed
-	float speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 	//personal cap
 	if (personalCap != -1 && personalCap <= speedCap) {
 		if (speed > personalCap) {
