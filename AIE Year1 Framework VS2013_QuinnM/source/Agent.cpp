@@ -8,6 +8,9 @@ Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 40, 40) {
 	velocity.x = 0;
 	velocity.y = 0;
 
+	drag = true;
+	drawVelocity = false;
+
 	if (sprite == 0) {
 		sprite = CreateSprite(texture, 40, 40, true);
 	}
@@ -28,33 +31,37 @@ Point Agent::GetVelocity() {
 }
 
 void Agent::Update() {
+	//move Agent
 	position += velocity;
 
-	if (velocity.x > 0) {
-		if (velocity.x < resistance) {
-			velocity.x = 0;
-		} else {
-			velocity.x -= resistance;
+	//add drag
+	if (drag) {
+		if (velocity.x > 0) {
+			if (velocity.x < resistance) {
+				velocity.x = 0;
+			} else {
+				velocity.x -= resistance;
+			}
+		} else if (velocity.x < 0) {
+			if (velocity.x > resistance) {
+				velocity.x = 0;
+			} else {
+				velocity.x += resistance;
+			}
 		}
-	} else if (velocity.x < 0) {
-		if (velocity.x > resistance) {
-			velocity.x = 0;
-		} else {
-			velocity.x += resistance;
-		}
-	}
 
-	if (velocity.y > 0) {
-		if (velocity.y < resistance) {
-			velocity.y = 0;
-		} else {
-			velocity.y -= resistance;
-		}
-	} else if (velocity.y < 0) {
-		if (velocity.y > resistance) {
-			velocity.y = 0;
-		} else {
-			velocity.y += resistance;
+		if (velocity.y > 0) {
+			if (velocity.y < resistance) {
+				velocity.y = 0;
+			} else {
+				velocity.y -= resistance;
+			}
+		} else if (velocity.y < 0) {
+			if (velocity.y > resistance) {
+				velocity.y = 0;
+			} else {
+				velocity.y += resistance;
+			}
 		}
 	}
 
@@ -74,4 +81,15 @@ void Agent::Update() {
 void Agent::Draw() {
 	MoveSprite(sprite, position.x, position.y);
 	DrawSprite(sprite);
+	if (drawVelocity) {
+		DrawLine(position.x, position.y, position.x + (velocity.x * 10), position.y + (velocity.y * 10), SColour(255, 0, 0, 255));
+	}
+}
+
+void Agent::ToggleDrag() {
+	drag = !drag;
+}
+
+void Agent::ToggleVelocityLine() {
+	drawVelocity = !drawVelocity;
 }

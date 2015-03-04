@@ -17,8 +17,13 @@ public:
 	virtual void Update();
 	virtual void Draw();
 
+	void ToggleDrag();
+	void ToggleVelocityLine();
+
 protected:
 	Point velocity;
+	bool drag;
+	bool drawVelocity;
 
 	static float const resistance;
 	static char* const texture;

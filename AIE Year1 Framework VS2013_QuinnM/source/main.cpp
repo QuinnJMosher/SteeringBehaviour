@@ -24,6 +24,28 @@ int main( int argc, char* argv[] )
 		if (time > 1.0f / 60.0f) {
 			time -= 1.0f / 60.f;
 
+			if (IsKeyDown('W')) {
+				agent.AddForce(Point(0, 1));
+			}
+			if (IsKeyDown('S')) {
+				agent.AddForce(Point(0, -1));
+			}
+			if (IsKeyDown('A')) {
+				agent.AddForce(Point(-1, 0));
+			}
+			if (IsKeyDown('D')) {
+				agent.AddForce(Point(1, 0));
+			}
+
+		    if (IsKeyDown('L')) {
+				if (!buttonDown) {
+					agent.ToggleVelocityLine();
+					buttonDown = true;
+				}
+			} else {
+				buttonDown = false;
+			}
+
 			agent.Update();
 		}
 
