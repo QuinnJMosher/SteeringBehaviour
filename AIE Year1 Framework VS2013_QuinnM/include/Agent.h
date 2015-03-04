@@ -4,10 +4,22 @@
 #include "Entity.h" //parent
 #include "AIE.h"
 
+enum Behaviour
+{
+	None,
+	Seek,
+	flee,
+	wander
+};
+
 class Agent : public Entity {
 public:
 	Agent(float in_x, float in_y);
 	~Agent();
+
+	void ChangeBehaviour(Behaviour in_behavior);
+	void SetTarget(Agent* in_target);
+	void SetSpeedCap(float in_speedCap);
 
 	void AddForce(Point force);
 	void SetForce(Point force);
@@ -18,14 +30,22 @@ public:
 	virtual void Draw();
 
 	void ToggleDrag();
-	void ToggleVelocityLine();
+	static void ToggleVelocityLine();
 
-protected:
+private:
 	Point velocity;
 	bool drag;
-	bool drawVelocity;
+
+	float personalCap;
+
+	Behaviour activeBehavior;
+	Agent* target;
+
+	static bool drawVelocity;
 
 	static float const resistance;
+	static float const speedCap;
+
 	static char* const texture;
 	static unsigned int sprite;
 };

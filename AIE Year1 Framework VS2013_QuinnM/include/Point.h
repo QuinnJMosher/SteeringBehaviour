@@ -1,5 +1,6 @@
 #ifndef _Point_h_
-#define _Point_H_
+#define _Point_h_
+
 
 struct Point {
 
@@ -38,6 +39,7 @@ struct Point {
 		x -= other.x;
 		y -= other.y;
 	}
+
 };
 
 #endif
