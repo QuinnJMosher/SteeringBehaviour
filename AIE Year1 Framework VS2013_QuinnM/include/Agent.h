@@ -11,7 +11,10 @@ enum Behaviour
 	None,
 	Seek,
 	flee,
-	wander
+	wander,
+	pursue,
+	evade,
+	arrival
 };
 
 class Agent : public Entity {

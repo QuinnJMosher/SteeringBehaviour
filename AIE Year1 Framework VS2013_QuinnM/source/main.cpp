@@ -17,17 +17,18 @@ int main( int argc, char* argv[] )
 	//agent.SetForce(Point(7, 1));
 	//agent.ToggleDrag();
 	agent.SetSpeedCap(10);
-	//agent.ChangeBehaviour(Behaviour::Seek);
+	//agent.ChangeBehaviour(Behaviour::pursue);
 	
 
 	Agent runner = Agent(100, 100);
 	agent.SetTarget(&runner);
-	runner.SetSpeedCap(4);
-	runner.ChangeBehaviour(Behaviour::wander);
+	runner.SetSpeedCap(10);
+	runner.ChangeBehaviour(Behaviour::arrival);
 	runner.SetWanderValues(20, 1);
 	runner.SetTarget(&agent);
 
 	bool buttonDown = false;
+	bool pause = false;
 	float time = 0;
 
     //Game Loop
@@ -39,20 +40,22 @@ int main( int argc, char* argv[] )
 		if (time > 1.0f / 60.0f) {
 			time -= 1.0f / 60.f;
 
-			if (IsKeyDown('W')) {
-				agent.AddForce(Point(0, 2));
-			}
+			if (!pause) {
+				if (IsKeyDown('W')) {
+					agent.AddForce(Point(0, 2));
+				}
 
-			if (IsKeyDown('S')) {
-				agent.AddForce(Point(0, -2));
-			}
+				if (IsKeyDown('S')) {
+					agent.AddForce(Point(0, -2));
+				}
 
-			if (IsKeyDown('A')) {
-				agent.AddForce(Point(-2, 0));
-			}
+				if (IsKeyDown('A')) {
+					agent.AddForce(Point(-2, 0));
+				}
 
-			if (IsKeyDown('D')) {
-				agent.AddForce(Point(2, 0));
+				if (IsKeyDown('D')) {
+					agent.AddForce(Point(2, 0));
+				}
 			}
 
 			//key to toggle velocity lines
@@ -61,12 +64,19 @@ int main( int argc, char* argv[] )
 					Agent::ToggleVelocityLine();
 					buttonDown = true;
 				}
+			} else if (IsKeyDown(' ')) {
+				if (!buttonDown) {
+					pause = !pause;
+					buttonDown = true;
+				}
 			} else {
 				buttonDown = false;
 			}
 
-			agent.Update();
-			runner.Update();
+			if (!pause) {
+				agent.Update();
+				runner.Update();
+			}
 		}
 
 		ClearScreen();
