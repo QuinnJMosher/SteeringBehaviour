@@ -17,6 +17,10 @@ Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 40, 40) {
 	activeBehavior = Behaviour::None;
 	target = nullptr;
 
+	wanderCircRadius = -1;
+	wanderJitter = -1;
+	wanderPoint = 1;
+
 	if (sprite == 0) {
 		sprite = CreateSprite(texture, 40, 40, true);
 	}
@@ -48,6 +52,11 @@ Point Agent::GetVelocity() {
 	return velocity;
 }
 
+void Agent::SetWanderValues(float in_CircleRadius, float in_Jitter) {
+	wanderCircRadius = in_CircleRadius;
+	wanderJitter = in_Jitter;
+}
+
 void Agent::Update() {
 	//find speed by calculating the magnitude of velocity
 	float speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
@@ -57,13 +66,66 @@ void Agent::Update() {
 		if (target != nullptr) {
 			//get target's position from the origin of position
 			Point targetRelPos = target->position - position;
-			float targetDist = std::sqrt((target->position.x * target->position.x) + (target->position.y * target->position.y));
+			float targetDist = std::sqrt((targetRelPos.x * targetRelPos.x) + (targetRelPos.y * targetRelPos.y));
 			targetRelPos.x /= targetDist;
 			targetRelPos.y /= targetDist;
 			//add to velocity
-			velocity.x += targetRelPos.x * 5;
-			velocity.y += targetRelPos.y * 5;
+			if (personalCap != -1 && personalCap < speedCap) {
+				velocity.x = (targetRelPos.x * personalCap);
+				velocity.y = (targetRelPos.y * personalCap);
+			} else {
+				velocity.x = (targetRelPos.x * speedCap);
+				velocity.y = (targetRelPos.y * speedCap);
+			}
 		}
+		break;
+	case Behaviour::flee:
+		if (target != nullptr) {
+			//get target's position from the origin of position
+			Point targetRelPos = target->position - position;
+			float targetDist = std::sqrt((targetRelPos.x * targetRelPos.x) + (targetRelPos.y * targetRelPos.y));
+			targetRelPos.x /= targetDist;
+			targetRelPos.y /= targetDist;
+
+			//reverse direction
+			targetRelPos.x *= -1;
+			targetRelPos.y *= -1;
+
+			//add to velocity
+			if (personalCap != -1 && personalCap < speedCap) {
+				velocity.x = (targetRelPos.x * personalCap);
+				velocity.y = (targetRelPos.y * personalCap);
+			} else {
+				velocity.x = (targetRelPos.x * speedCap);
+				velocity.y = (targetRelPos.y * speedCap);
+			}
+		}
+		break;
+	case Behaviour::wander:
+		//find circle position (Where agent position is the origin) (velocity provides direction away unless it's 0,0)
+		Point circlePos = velocity;
+		//generate float from 0-2
+		wanderPoint += ((((rand() % 2000) - 1000) / 10000.0f)) * wanderJitter;
+		if (wanderPoint < 0.0f) {
+			wanderPoint *= -1;
+		}
+		while (wanderPoint > 2.0f)  {
+			wanderPoint -= 2.0f;
+		}
+		//find position on circle at the generated number in radians
+		Point RadPos;
+		RadPos.x = circlePos.x + wanderCircRadius * std::cos(wanderPoint * std::_Pi);
+		RadPos.y = circlePos.y + wanderCircRadius * std::sin(wanderPoint * std::_Pi);
+		//normalize radpos
+		float RadMag = std::sqrt((RadPos.x * RadPos.x) + (RadPos.y * RadPos.y));
+		RadPos.x = RadPos.x / RadMag;
+		RadPos.y = RadPos.y / RadMag;
+		//set radpos's magnitude to the radius
+		RadPos.x = RadPos.x * wanderCircRadius;
+		RadPos.y = RadPos.y * wanderCircRadius;
+		//add the new direction to our current velocity 
+		velocity += RadPos;
+		//compensate to keep velocity's magnitude the same?
 		break;
 	}
 
@@ -128,14 +190,22 @@ void Agent::Update() {
 	//loop screen
 	if (position.x + (width / 2) > 900) {
 		position.x = (width / 2);
+		//velocity.x *= -1;
+		//position.x = 900 - width;
 	} else if (position.x - (width / 2) < 0) {
 		position.x = 900 - (width / 2);
+		//velocity.x *= -1;
+		//position.x = 0 + width;
 	}
 
 	if (position.y + (height / 2) > 600) {
 		position.y = (height / 2);
+		//velocity.y *= -1;
+		//position.y = 600 - height;
 	} else if (position.y - (height / 2) < 0) {
 		position.y = 600 - (height / 2);
+		//velocity.y *= -1;
+		//position.y = 0 + height;
 	}
 
 	//move Agent

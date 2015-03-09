@@ -3,6 +3,8 @@
 
 #include "Entity.h" //parent
 #include "AIE.h"
+#include <random>
+#include <ctime>
 
 enum Behaviour
 {
@@ -26,6 +28,8 @@ public:
 
 	Point GetVelocity();
 
+	void SetWanderValues(float in_CircleRadius, float in_Jitter);
+
 	virtual void Update();
 	virtual void Draw();
 
@@ -40,6 +44,10 @@ private:
 
 	Behaviour activeBehavior;
 	Agent* target;
+
+	float wanderCircRadius;
+	float wanderJitter;
+	float wanderPoint;
 
 	static bool drawVelocity;
 

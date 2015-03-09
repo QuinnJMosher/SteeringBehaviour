@@ -11,14 +11,20 @@ int main( int argc, char* argv[] )
     
     SetBackgroundColour(SColour(0, 0, 0, 255));
 
+	srand(time(NULL));
+
 	Agent agent = Agent(450, 300);
 	//agent.SetForce(Point(7, 1));
 	//agent.ToggleDrag();
 	agent.SetSpeedCap(10);
+	//agent.ChangeBehaviour(Behaviour::Seek);
+	
 
 	Agent runner = Agent(100, 100);
-	runner.SetSpeedCap(10);
-	runner.ChangeBehaviour(Behaviour::Seek);
+	agent.SetTarget(&runner);
+	runner.SetSpeedCap(4);
+	runner.ChangeBehaviour(Behaviour::wander);
+	runner.SetWanderValues(20, 1);
 	runner.SetTarget(&agent);
 
 	bool buttonDown = false;
