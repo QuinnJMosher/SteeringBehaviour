@@ -3,7 +3,8 @@
 float const Agent::resistance = 0.06f;
 char* const Agent::texture = "images/invaders/invaders_1_00.png";
 bool Agent::drawVelocity = false;
-
+std::vector<Entity*> Agent::objectList = std::vector<Entity*>();
+float Agent::avoidStrength = 2;
 unsigned int Agent::sprite = 0;
 float const Agent::speedCap = 50;
 
@@ -12,6 +13,7 @@ Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 40, 40) {
 	velocity.y = 0;
 
 	drag = true;
+	avoidObjects = false;
 
 	personalCap = -1;
 	activeBehavior = Behaviour::None;
@@ -214,16 +216,68 @@ void Agent::Update() {
 		break;
 	}
 
+	//obstacle avoidance dosne quite work;
 	//if obstacle Avoidance is turned on
-		//iterate throught a list of stuff to colide with (Loop)
-			//don't attempt to colide with things if they are your target or yourself
-				//check for colision allong current velocity
-					//if collided then get colision normal and apply force in that direction
-				//check colision at height/2 to the left of current velocity
-				//check colision at height/2 to the right of current velocity
-					//apply velocities as needed
-				//then ajust speed to be the same as it was before
-		//(End Loop)
+	if (avoidObjects) {
+		//recalculate speed so we can make sure to keep it at the same level
+		speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
+
+		//if i am moving
+		if (!((velocity.x < 0.00001 && velocity.x > -0.00001) && //float eq for if (!(velocity.x == 0 && velocity.y == 0))
+			(velocity.y < 0.00001 && velocity.y > -0.00001))) {
+
+			//iterate throught a list of stuff to colide with (Loop)
+			for (int i = 0; i < objectList.size(); i++) {
+
+				//don't attempt to colide with things if they are your target or yourself
+				if (objectList[i] != this && objectList[i] != target) {
+
+					//check for colision allong current velocity
+					if (objectList[i]->RayCast(position, position + velocity * 3)) {
+						//if collided then apply force away from here
+						speed - avoidStrength;
+					}
+					
+					//create new angle for next raycast
+					float velocityAngle = atan2(velocity.x, -velocity.y);//get original angle
+					Point editedDirection = Point(std::cos(velocityAngle + 0.2), -std::sin(velocityAngle + 0.2));//ad to angle, convert to vector
+					editedDirection = (editedDirection * speed) * 3;//set velocity
+
+					Point avoidForce;
+					float avoidMag;
+					//check colision at angle slightly above velocity;
+					if (objectList[i]->RayCast(position, position + editedDirection)) {
+						avoidForce = objectList[i]->position - position;
+						avoidMag = std::sqrt((avoidForce.x * avoidForce.x) + (avoidForce.y * avoidForce.y));
+						avoidForce.x = avoidForce.x / avoidMag;
+						avoidForce.y = avoidForce.y / avoidMag;
+						avoidForce = avoidForce * -avoidStrength;//negitive to get the opposite direction
+						velocity += avoidForce;
+					}
+					
+					editedDirection = Point(std::cos(velocityAngle - 0.2), -std::sin(velocityAngle - 0.2));
+					editedDirection = (editedDirection * speed) * 3;
+					
+					//check colision at angle slightly below velocity
+					if (objectList[i]->RayCast(position, position + editedDirection)) {
+						//apply velocities as needed
+						avoidForce = objectList[i]->position - position;
+						avoidMag = std::sqrt((avoidForce.x * avoidForce.x) + (avoidForce.y * avoidForce.y));
+						avoidForce.x = avoidForce.x / avoidMag;
+						avoidForce.y = avoidForce.y / avoidMag;
+						avoidForce = avoidForce * -avoidStrength;//negitive to get the opposite direction
+						velocity += avoidForce;
+					}
+
+
+					//then ajust speed to be the same as it was before
+					float changedSpeed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
+					velocity.x = (velocity.x / changedSpeed) * speed;
+					velocity.x = (velocity.x / changedSpeed) * speed;
+				}
+			}
+		}
+	}
 
 	//cap speed
 	//personal cap
@@ -320,6 +374,23 @@ void Agent::ToggleDrag() {
 	drag = !drag;
 }
 
+void Agent::ToggleAvoidObsticals() {
+	avoidObjects = !avoidObjects;
+}
+
 void Agent::ToggleVelocityLine() {
 	drawVelocity = !drawVelocity;
+}
+
+void Agent::AddObject(Entity* in_object) {
+	objectList.emplace_back(in_object);
+}
+
+void Agent::RemoveObject(Entity* in_object) {
+	for (int i = 0; i < objectList.size(); i++) {
+		if (objectList[i] == in_object) {
+			objectList.erase(objectList.begin() + i);
+			break;
+		}
+	}
 }

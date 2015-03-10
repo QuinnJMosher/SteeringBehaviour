@@ -40,6 +40,14 @@ struct Point {
 		y -= other.y;
 	}
 
+	Point operator*(float other) {
+		Point out;
+		out.x = x * other;
+		out.y = y * other;
+
+		return out;
+	}
+
 };
 
 #endif

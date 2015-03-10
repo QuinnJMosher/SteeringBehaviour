@@ -5,6 +5,7 @@
 #include "AIE.h"
 #include <random>
 #include <ctime>
+#include <vector>
 
 enum Behaviour
 {
@@ -37,7 +38,11 @@ public:
 	virtual void Draw();
 
 	void ToggleDrag();
+	void ToggleAvoidObsticals();
 	static void ToggleVelocityLine();
+
+	static void AddObject(Entity* in_object);
+	static void RemoveObject(Entity* in_object);
 
 private:
 	Point velocity;
@@ -51,6 +56,10 @@ private:
 	float wanderCircRadius;
 	float wanderJitter;
 	float wanderPoint;
+
+	bool avoidObjects;
+	static float avoidStrength;
+	static std::vector<Entity*> objectList;
 
 	static bool drawVelocity;
 
