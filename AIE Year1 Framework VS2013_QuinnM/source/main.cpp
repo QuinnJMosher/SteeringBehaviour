@@ -1,6 +1,8 @@
 ﻿#include "AIE.h"
 #include <iostream>
+#include <vector>
 #include "Agent.h"
+#include "Wall.h";
 
 //constant vars
 static int SCREEN_MAX_X = 900, SCREEN_MAX_Y = 600;
@@ -24,8 +26,10 @@ int main( int argc, char* argv[] )
 	agent.SetTarget(&runner);
 	runner.SetSpeedCap(10);
 	runner.ChangeBehaviour(Behaviour::arrival);
-	runner.SetWanderValues(20, 1);
+	runner.SetWanderValues(5, 1);
 	runner.SetTarget(&agent);
+
+	Wall wall = Wall(100, 200, 30, 30);
 
 	bool buttonDown = false;
 	bool pause = false;
@@ -58,6 +62,19 @@ int main( int argc, char* argv[] )
 				}
 			}
 
+			if (IsKeyDown('1')) {
+				runner.ChangeBehaviour(Behaviour::wander);
+			}
+			if (IsKeyDown('2')) {
+				runner.ChangeBehaviour(Behaviour::pursue);
+			}
+			if (IsKeyDown('3')) {
+				runner.ChangeBehaviour(Behaviour::evade);
+			}
+			if (IsKeyDown('4')) {
+				runner.ChangeBehaviour(Behaviour::arrival);
+			}
+
 			//key to toggle velocity lines
 		    if (IsKeyDown('L')) {
 				if (!buttonDown) {
@@ -76,6 +93,7 @@ int main( int argc, char* argv[] )
 			if (!pause) {
 				agent.Update();
 				runner.Update();
+				wall.Update();
 			}
 		}
 
@@ -83,6 +101,7 @@ int main( int argc, char* argv[] )
 
 		agent.Draw();
 		runner.Draw();
+		wall.Draw();
 
     } while(!FrameworkUpdate());
 

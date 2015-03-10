@@ -1,7 +1,7 @@
 #include "Agent.h"
 
 float const Agent::resistance = 0.06f;
-char* const Agent::texture = "images/crate_sideup.png";
+char* const Agent::texture = "images/invaders/invaders_1_00.png";
 bool Agent::drawVelocity = false;
 
 unsigned int Agent::sprite = 0;
@@ -130,7 +130,17 @@ void Agent::Update() {
 		RadPos.y = RadPos.y * wanderCircRadius;
 		//add the new direction to our current velocity 
 		velocity += RadPos;
-		//compensate to keep velocity's magnitude the same?
+		//compensate to keep velocity's magnitude the same
+		speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
+		velocity.x = velocity.x / speed;
+		velocity.y = velocity.y / speed;
+		if (personalCap != -1 && personalCap < speedCap) {
+			velocity.x = velocity.x * personalCap;
+			velocity.y = velocity.y * personalCap;
+		} else {
+			velocity.x = velocity.x * speedCap;
+			velocity.y = velocity.y * speedCap;
+		}
 		break;
 	case Behaviour::pursue:
 		if (target != nullptr) {
@@ -203,6 +213,17 @@ void Agent::Update() {
 		}
 		break;
 	}
+
+	//if obstacle Avoidance is turned on
+		//iterate throught a list of stuff to colide with (Loop)
+			//don't attempt to colide with things if they are your target or yourself
+				//check for colision allong current velocity
+					//if collided then get colision normal and apply force in that direction
+				//check colision at height/2 to the left of current velocity
+				//check colision at height/2 to the right of current velocity
+					//apply velocities as needed
+				//then ajust speed to be the same as it was before
+		//(End Loop)
 
 	//cap speed
 	//personal cap
