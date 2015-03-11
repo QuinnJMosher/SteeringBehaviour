@@ -1,6 +1,6 @@
 #include "EvadeBehaviour.h"
 
-EvadeBehaviour::EvadeBehaviour(Agent* pt_target, float in_maxForce) : Behaviour() {
+EvadeBehaviour::EvadeBehaviour(Agent* in_owner, Agent* pt_target, float in_maxForce) : Behaviour(in_owner) {
 	if (pt_target == nullptr) {
 		throw("Argument of EvadeBehaviour(Agent*) cannot be null");
 	}

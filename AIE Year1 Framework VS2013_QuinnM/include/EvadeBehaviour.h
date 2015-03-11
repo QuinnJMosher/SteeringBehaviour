@@ -1,11 +1,11 @@
 #ifndef _EvadeBehaviour_h_
 #define _EvadeBehaviour_h_
 
-#include "Behaviour.h"
+#include "Agent.h"
 
 class EvadeBehaviour : public Behaviour {
 public:
-	EvadeBehaviour(Agent* pt_target, float in_maxForce);
+	EvadeBehaviour(Agent* in_owner, Agent* pt_target, float in_maxForce);
 	~EvadeBehaviour();
 
 	virtual Point GetForce();

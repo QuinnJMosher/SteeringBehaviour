@@ -1,6 +1,6 @@
 #include "PursueBehaviour.h"
 
-PursueBehaviour::PursueBehaviour(Agent* pt_target, float in_maxForce) : Behaviour() {
+PursueBehaviour::PursueBehaviour(Agent* in_owner, Agent* pt_target, float in_maxForce) : Behaviour(in_owner) {
 	if (pt_target == nullptr) {
 		throw("Argument of PursueBehaviour(Agent*) cannot be null");
 	}

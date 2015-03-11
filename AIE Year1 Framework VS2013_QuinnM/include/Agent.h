@@ -3,14 +3,24 @@
 
 #include "Entity.h" //parent
 #include "AIE.h"
-#include "EvadeBehaviour.h"
-#include "PursueBehaviour.h"
-#include "WanderBehaviour.h"
 #include <random>
 #include <ctime>
 #include <vector>
 
-typedef std::vector<Behaviour> behaiviourArray;
+class Agent;
+
+class Behaviour {
+public:
+	Behaviour(Agent* in_owner);
+	~Behaviour();
+
+	virtual Point GetForce() = 0;
+
+protected:
+	Agent* owner;
+};
+
+typedef std::vector<Behaviour*> behaiviourArray;
 
 class Agent : public Entity {
 public:
@@ -18,6 +28,10 @@ public:
 	~Agent();
 
 	void SetSpeedCap(float in_speedCap);
+
+	void AddPursue(Agent* in_target, float in_strength, int in_priority);
+	void AddEvade(Agent* in_target, float in_strength, int in_priority);
+	void AddWander(float in_circRadius, float in_jitter, float in_strength, float in_priority);
 
 	void AddForce(Point force);
 	void SetForce(Point force);
@@ -36,7 +50,6 @@ private:
 
 	float maxVelocity;
 
-	std::vector<Point> pendingVelocityAdditions;
 	std::vector<behaiviourArray> behaviourPriority;
 
 	static bool drawVelocity;
@@ -47,5 +60,10 @@ private:
 	static char* const texture;
 	static unsigned int sprite;
 };
+
+//cpp only headers (avoids circular dependency)
+#include "PursueBehaviour.h"
+#include "EvadeBehaviour.h"
+#include "WanderBehaviour.h"
 
 #endif

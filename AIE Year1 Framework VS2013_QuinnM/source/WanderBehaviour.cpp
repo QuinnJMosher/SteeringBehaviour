@@ -1,6 +1,6 @@
 #include "WanderBehaviour.h"
 
-WanderBehaviour::WanderBehaviour(float in_radius, float in_jitter, float in_maxForce) {
+WanderBehaviour::WanderBehaviour(Agent* in_owner, float in_radius, float in_jitter, float in_maxForce) : Behaviour(in_owner) {
 	radius = in_radius;
 	jitter = in_jitter;
 	maxForce = in_maxForce;

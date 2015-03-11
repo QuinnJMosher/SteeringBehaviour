@@ -7,6 +7,11 @@ bool Agent::drawVelocity = false;
 unsigned int Agent::sprite = 0;
 float const Agent::speedCap = 50;
 
+Behaviour::Behaviour(Agent* in_owner) {
+	owner = in_owner;
+}
+Behaviour::~Behaviour() { }
+
 Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 40, 40) {
 	velocity.x = 0;
 	velocity.y = 0;
@@ -14,6 +19,8 @@ Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 40, 40) {
 	drag = true;
 
 	maxVelocity = -1;
+
+	behaviourPriority = std::vector<behaiviourArray>();
 
 	if (sprite == 0) {
 		sprite = CreateSprite(texture, 40, 40, true);
@@ -24,6 +31,40 @@ Agent::~Agent() { }
 
 void Agent::SetSpeedCap(float in_speedCap) {
 	maxVelocity = in_speedCap;
+}
+
+void Agent::AddPursue(Agent* in_target, float in_strength, int in_priority) {
+	while (behaviourPriority.size() < in_priority + 1) {
+		behaviourPriority.emplace_back(behaiviourArray());
+	}
+	if (maxVelocity != -1 && maxVelocity < speedCap) {
+		behaviourPriority.at(in_priority).emplace_back(new PursueBehaviour(this, in_target, maxVelocity * in_strength));
+	} else {
+		behaviourPriority.at(in_priority).emplace_back(new PursueBehaviour(this, in_target, speedCap * in_strength));
+	}
+}
+
+void Agent::AddEvade(Agent* in_target, float in_strength, int in_priority) {
+	while (behaviourPriority.size() < in_priority + 1) {
+		behaviourPriority.emplace_back(behaiviourArray());
+	}
+	if (maxVelocity != -1 && maxVelocity < speedCap) {
+		behaviourPriority.at(in_priority).emplace_back(new EvadeBehaviour(this, in_target, maxVelocity * in_strength));
+	} else {
+		behaviourPriority.at(in_priority).emplace_back(new EvadeBehaviour(this, in_target, speedCap * in_strength));
+	}
+}
+
+void Agent::AddWander(float in_circRadius, float in_jitter, float in_strength, float in_priority) {
+	while (behaviourPriority.size() < in_priority + 1) {
+		behaviourPriority.emplace_back(behaiviourArray());
+	}
+	if (maxVelocity != -1 && maxVelocity < speedCap) {
+		behaviourPriority.at(in_priority).emplace_back(new WanderBehaviour(this, in_circRadius, in_jitter, maxVelocity * in_strength));
+	}
+	else {
+		behaviourPriority.at(in_priority).emplace_back(new WanderBehaviour(this, in_circRadius, in_jitter, speedCap * in_strength));
+	}
 }
 
 void Agent::AddForce(Point force) {
@@ -39,16 +80,13 @@ Point Agent::GetVelocity() {
 }
 
 void Agent::Update() {
-	velocity = Point(0, 0);
 	float speed;
 
-	for (int i = 0; i < pendingVelocityAdditions.size(); i++) {
-		velocity += pendingVelocityAdditions[i];
-	}
+	speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 
 	for (int i = 0; i < behaviourPriority.size(); i++) {
 		for (int j = 0; j < behaviourPriority[i].size(); j++) {
-			velocity += behaviourPriority[i][j].GetForce();
+			velocity += behaviourPriority[i][j]->GetForce();
 		}
 
 		speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
@@ -86,33 +124,21 @@ void Agent::Update() {
 		}
 	}
 
+	speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
+
 	//add drag
 	if (drag) {
-		if (velocity.x > 0) {
-			if (velocity.x < resistance) {
-				velocity.x = 0;
-			} else {
-				velocity.x -= resistance;
-			}
-		} else if (velocity.x < 0) {
-			if (velocity.x > resistance) {
-				velocity.x = 0;
-			} else {
-				velocity.x += resistance;
-			}
-		}
+		if (!(velocity.x < 0.00001 && velocity.x > -0.00001) || //float eq for if (velocity.x != 0 || velocity.y != 0)
+			!(velocity.y < 0.00001 && velocity.y > -0.00001)) {
+			float normal_x = velocity.x / speed;
+			float normal_y = velocity.y / speed;
 
-		if (velocity.y > 0) {
-			if (velocity.y < resistance) {
-				velocity.y = 0;
+			if (speed > resistance) {
+				velocity.x = normal_x * (speed - resistance);
+				velocity.y = normal_y * (speed - resistance);
 			} else {
-				velocity.y -= resistance;
-			}
-		} else if (velocity.y < 0) {
-			if (velocity.y > resistance) {
+				velocity.x = 0;
 				velocity.y = 0;
-			} else {
-				velocity.y += resistance;
 			}
 		}
 	}
