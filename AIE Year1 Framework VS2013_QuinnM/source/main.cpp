@@ -20,9 +20,6 @@ int main( int argc, char* argv[] )
 	//agent.ToggleDrag();
 	agent.SetSpeedCap(10);
 
-	Wall wall = Wall(300, 300, 50, 150);
-	Agent::AddObject(&wall);
-
 	bool buttonDown = false;
 	bool pause = false;
 	float time = 0;
@@ -71,14 +68,12 @@ int main( int argc, char* argv[] )
 
 			if (!pause) {
 				agent.Update();
-				wall.Update();
 			}
 		}
 
 		ClearScreen();
 
 		agent.Draw();
-		wall.Draw();
 
     } while(!FrameworkUpdate());
 

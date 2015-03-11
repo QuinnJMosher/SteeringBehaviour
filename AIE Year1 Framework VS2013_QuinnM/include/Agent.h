@@ -3,28 +3,20 @@
 
 #include "Entity.h" //parent
 #include "AIE.h"
+#include "EvadeBehaviour.h"
+#include "PursueBehaviour.h"
+#include "WanderBehaviour.h"
 #include <random>
 #include <ctime>
 #include <vector>
 
-enum Behaviour
-{
-	None,
-	Seek,
-	flee,
-	wander,
-	pursue,
-	evade,
-	arrival
-};
+typedef std::vector<Behaviour> behaiviourArray;
 
 class Agent : public Entity {
 public:
 	Agent(float in_x, float in_y);
 	~Agent();
 
-	void ChangeBehaviour(Behaviour in_behavior);
-	void SetTarget(Agent* in_target);
 	void SetSpeedCap(float in_speedCap);
 
 	void AddForce(Point force);
@@ -32,34 +24,20 @@ public:
 
 	Point GetVelocity();
 
-	void SetWanderValues(float in_CircleRadius, float in_Jitter);
-
 	virtual void Update();
 	virtual void Draw();
 
 	void ToggleDrag();
-	void ToggleAvoidObsticals();
 	static void ToggleVelocityLine();
-
-	static void AddObject(Entity* in_object);
-	static void RemoveObject(Entity* in_object);
 
 private:
 	Point velocity;
 	bool drag;
 
-	float personalCap;
+	float maxVelocity;
 
-	Behaviour activeBehavior;
-	Agent* target;
-
-	float wanderCircRadius;
-	float wanderJitter;
-	float wanderPoint;
-
-	bool avoidObjects;
-	static float avoidStrength;
-	static std::vector<Entity*> objectList;
+	std::vector<Point> pendingVelocityAdditions;
+	std::vector<behaiviourArray> behaviourPriority;
 
 	static bool drawVelocity;
 
