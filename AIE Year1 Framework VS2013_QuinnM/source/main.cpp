@@ -27,20 +27,20 @@ int main( int argc, char* argv[] )
 
 	agent3.SetSpeedCap(10);
 	agent3.AddEvade(&agent2, 0.5, 0);
-	agent3.AddPursue(&agent, 0.5, 0);
+	//agent3.AddPursue(&agent, 0.5, 0);
 
-	agent.AddPursue(&agent2, 0.5, 0);
-	agent.AddEvade(&agent3, 0.5, 0);
+	agent.AddPursue(&agent2, 1, 0);
+	//agent.AddEvade(&agent3, 0.5, 0);
 
 	/*Agent agent4 = Agent(450, 250);
 	agent4.AddPursue(&agent, 0.3, 0);
 	agent4.AddPursue(&agent2, 0.3, 0);
 	agent4.AddPursue(&agent3, 0.3, 0);*/
 
-	Agent agent5 = Agent(450, 300);
-	agent5.SetSpeedCap(4);
-	agent5.AddWander(3, 0.4, 1, 1);
-	agent5.AddPursue(&agent, 0.1, 0);
+	//Agent agent5 = Agent(450, 300);
+	//agent5.SetSpeedCap(4);
+	//agent5.AddWander(3, 0.4, 1, 1);
+	//agent5.AddPursue(&agent, 0.1, 0);
 
 	bool buttonDown = false;
 	bool pause = false;
@@ -95,7 +95,7 @@ int main( int argc, char* argv[] )
 				//agent4.Update();
 				
 			}
-			agent5.Update();
+			//agent5.Update();
 		}
 
 		ClearScreen();
@@ -104,7 +104,7 @@ int main( int argc, char* argv[] )
 		agent2.Draw();
 		agent3.Draw();
 		//agent4.Draw();
-		agent5.Draw();
+		//agent5.Draw();
 
     } while(!FrameworkUpdate());
 

@@ -18,6 +18,8 @@ Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 40, 40) {
 
 	drag = true;
 
+	frame = 0;
+
 	maxVelocity = -1;
 
 	behaviourPriority = std::vector<behaiviourArray>();
@@ -80,21 +82,24 @@ Point Agent::GetVelocity() {
 }
 
 void Agent::Update() {
+	frame++;
 	float speed;
 
 	speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 
-	for (int i = 0; i < behaviourPriority.size(); i++) {
-		for (int j = 0; j < behaviourPriority[i].size(); j++) {
-			velocity += behaviourPriority[i][j]->GetForce();
-		}
+	if (frame % 7 == 0) {
+		for (int i = 0; i < behaviourPriority.size(); i++) {
+			for (int j = 0; j < behaviourPriority[i].size(); j++) {
+				velocity += behaviourPriority[i][j]->GetForce();
+			}
 
-		speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
+			speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 
-		if (speed > maxVelocity) {
-			break;
+			if (speed > maxVelocity) {
+				break;
+			}
+
 		}
-			
 	}
 
 	//cap speed

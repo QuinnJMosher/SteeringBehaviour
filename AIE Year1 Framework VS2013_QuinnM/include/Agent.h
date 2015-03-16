@@ -48,6 +48,8 @@ private:
 	Point velocity;
 	bool drag;
 
+	int frame;
+
 	float maxVelocity;
 
 	std::vector<behaiviourArray> behaviourPriority;
