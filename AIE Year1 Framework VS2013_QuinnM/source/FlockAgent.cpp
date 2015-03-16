@@ -51,7 +51,18 @@ void FlockAgent::Update() {
 
 	speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 
-	velocity += Separation(maxVelocity * 0.3);
+	if (frame % 10 == 0) {
+		UpdateNeighbourhood();
+	}
+
+	if (frame % 10 == 0) {
+		Point flockingVelocity = Point(0, 0);
+
+		flockingVelocity += Separation(maxVelocity * 0.3f);
+		flockingVelocity += Cohesion(maxVelocity * 0.3f);
+
+		velocity = flockingVelocity;
+	}
 
 	//cap speed
 	//personal cap
@@ -156,29 +167,77 @@ Point FlockAgent::Separation(float in_repulsion) {
 		return Point(0, 0);
 	}
 	Point separationVel = Point();
-	float distance = 0;
+	int count = 0;
 
 	//add all directions into one large force
 	for (int i = 0; i < neighbourhood.size(); i++) {
-		Point currentDif = neighbourhood[i]->position - position;
-		separationVel += currentDif;
-		distance += std::sqrt((currentDif.x * currentDif.x) + (currentDif.y * currentDif.y));
+		//find the current force
+		Point currentForce = neighbourhood[i]->position - position;
+		float magnitude = std::sqrt((currentForce.x * currentForce.x) + (currentForce.y * currentForce.y));
+
+		if (magnitude < neighbourhoodRadius / 2) {
+
+			//if it's further away than our given power then set the force's magnitude to the given maximum
+			currentForce.x /= magnitude;
+			currentForce.y /= magnitude;
+
+			currentForce.x * in_repulsion;
+			currentForce.y * in_repulsion;
+
+			separationVel -= currentForce;
+			count++;
+		}
 	}
 
-	//normalize the force
-	separationVel.x /= distance;
-	separationVel.y /= distance;
-
-	//apply the given amount of repusion and reverse it 
-	separationVel * in_repulsion * -1;
+	//find the mean force
+	separationVel.x /= count;
+	separationVel.y /= count;
 
 	return separationVel;
 }
 Point FlockAgent::Alignment() {
 	return Point(0, 0);
 }
-Point FlockAgent::Cohesion() {
-	return Point(0, 0);
+Point FlockAgent::Cohesion(float in_attraction) {
+	if (neighbourhood.size() == 0) {
+		return Point(0, 0);
+	}
+
+	//if (neighbourhood.size() == 1) {
+	//	return Point(0, 0);
+	//}
+
+	Point neighborAvg = Point();
+	float numPos = 0;
+
+	//add up all positions
+	for (int i = 0; i < neighbourhood.size(); i++) {
+		Point otherDif = neighbourhood[i]->position - position;
+		float otherDist = std::sqrt((otherDif.x * otherDif.x) + (otherDif.y * otherDif.y));
+		if (otherDist > neighbourhoodRadius / 2) {
+			neighborAvg += neighbourhood[i]->position;
+			numPos++;
+		}
+	}
+
+	//average the position
+	neighborAvg.x /= numPos;
+	neighborAvg.y /= numPos;
+
+	//make position relitive to our position
+	neighborAvg -= position;
+	//normalize relitive position
+	float magnitude = std::sqrt((neighborAvg.x * neighborAvg.x) + (neighborAvg.y * neighborAvg.y));
+
+	neighborAvg.x /= magnitude;
+	neighborAvg.y /= magnitude;
+	//set the relitive positions magnitude to our given attraction value
+	neighborAvg.x *= in_attraction;
+	neighborAvg.y *= in_attraction;
+
+	magnitude = std::sqrt((neighborAvg.x * neighborAvg.x) + (neighborAvg.y * neighborAvg.y));
+
+	return neighborAvg;
 }
 
 void FlockAgent::UpdateNeighbourhood() {

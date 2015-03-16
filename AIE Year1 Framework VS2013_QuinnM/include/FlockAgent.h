@@ -33,7 +33,7 @@ private:
 	//behavior funcs
 	Point Separation(float in_repulsion);
 	Point Alignment();
-	Point Cohesion();
+	Point Cohesion(float in_attraction);
 
 	//flock func
 	void UpdateNeighbourhood();

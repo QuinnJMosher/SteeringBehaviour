@@ -18,14 +18,16 @@ int main( int argc, char* argv[] )
 	srand(time(NULL));
 
 	std::vector<FlockAgent*> world = std::vector<FlockAgent*>();
-	world.emplace_back(new FlockAgent(123, 456));
-	world.emplace_back(new FlockAgent(143, 466));
-	world.emplace_back(new FlockAgent(128, 460));
-	world.emplace_back(new FlockAgent(148, 470));
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			world.emplace_back(new FlockAgent(300 + (i * 50), 200 + (j * 50)));
+		}
+	}
 
 	for (int i = 0; i < world.size(); i++) {
 		world[i]->SetSpeedCap(10);
 		world[i]->SetWorld(&world);
+		world[i]->SetNeighbourhood(150);
 	}
 
 	bool buttonDown = false;
