@@ -18,9 +18,9 @@ int main( int argc, char* argv[] )
 	srand(time(NULL));
 
 	std::vector<FlockAgent*> world = std::vector<FlockAgent*>();
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 20; i++) {
 		for (int j = 0; j < 10; j++) {
-			world.emplace_back(new FlockAgent(300 + (i * 50), 200 + (j * 50)));
+			world.emplace_back(new FlockAgent(200 + (i * 50), 100 + (j * 50)));
 		}
 	}
 

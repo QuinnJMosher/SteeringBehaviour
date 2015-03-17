@@ -52,15 +52,15 @@ void FlockAgent::Update() {
 
 	speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 
-	//if (frame % 1 == 0) {
+	//if (frame % 10 == 0) {
 		UpdateNeighbourhood();
 	//}
 
-	//if (frame % 1 == 0) {
+	//if (frame % 5 == 0) {
 		Point flockingVelocity = Point(0, 0);
 
-		flockingVelocity += Separation(maxVelocity * 0.45f);
-		//flockingVelocity += Alignment(maxVelocity * 0.4f);
+		flockingVelocity += Separation(maxVelocity * 0.65f);
+		flockingVelocity += Alignment(maxVelocity * 0.05f);
 		flockingVelocity += Cohesion(maxVelocity * 0.3f);
 
 		velocity += flockingVelocity;
@@ -145,7 +145,7 @@ void FlockAgent::Draw() {
 	MoveSprite(sprite, position.x, position.y);
 	DrawSprite(sprite);
 	if (drawVelocity) {
-		DrawLine(position.x, position.y, position.x + (velocity.x * 10), position.y + (velocity.y * 10), SColour(255, 0, 0, 255));
+		DrawLine(position.x, position.y, position.x + (velocity.x * 5), position.y + (velocity.y * 5), SColour(255, 0, 0, 255));
 	}
 	if (drawNeighbourhood) {
 		DrawLine(position.x, position.y - neighbourhoodRadius, position.x, position.y + neighbourhoodRadius, SColour(0, position.x, position.y, 255));
@@ -204,10 +204,37 @@ Point FlockAgent::Separation(float in_repulsion) {
 	return totalRepulsion;
 }
 Point FlockAgent::Alignment(float in_pull) {
-	return Point(0, 0);
+	if (neighbourhood.size() < 3) {
+		return Point(0, 0);
+	}
+
+	Point desiredVelocity = Point(0, 0);
+
+	for (int i = 0; i < neighbourhood.size(); i++) {
+		desiredVelocity += neighbourhood[i]->GetVelocity();
+	}
+
+	desiredVelocity.x /= neighbourhood.size();
+	desiredVelocity.y /= neighbourhood.size();
+
+	desiredVelocity -= velocity;
+
+	float desiredVelMag = std::sqrt(std::pow(desiredVelocity.x, 2) + std::pow(desiredVelocity.y, 2));
+
+	if (desiredVelMag < 0.0000001 && desiredVelMag > -0.0000001) { // float eq for desiredVelMag == 0:
+		return Point(0, 0);
+	}
+
+	desiredVelocity.x /= desiredVelMag;
+	desiredVelocity.y /= desiredVelMag;
+
+	desiredVelocity.x *= in_pull;
+	desiredVelocity.y *= in_pull;
+
+	return desiredVelocity;
 }
 Point FlockAgent::Cohesion(float in_attraction) {
-	if (neighbourhood.size() == 0) {
+	if (neighbourhood.size() < 3) {
 		return Point(0, 0);
 	}
 
