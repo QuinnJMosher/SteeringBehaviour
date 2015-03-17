@@ -23,6 +23,7 @@ public:
 
 	void ToggleDrag();
 	static void ToggleVelocityLine();
+	static void ToggleNeighbourhoods();
 
 	//flocking setters
 	void SetWorld(std::vector<FlockAgent*>* pt_world);
@@ -32,7 +33,7 @@ private:
 
 	//behavior funcs
 	Point Separation(float in_repulsion);
-	Point Alignment();
+	Point Alignment(float in_pull);
 	Point Cohesion(float in_attraction);
 
 	//flock func
@@ -58,6 +59,7 @@ private:
 	static char* const texture;
 	static unsigned int sprite;
 	static bool drawVelocity;
+	static bool drawNeighbourhood;
 };
 
 #endif

@@ -18,16 +18,18 @@ int main( int argc, char* argv[] )
 	srand(time(NULL));
 
 	std::vector<FlockAgent*> world = std::vector<FlockAgent*>();
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 10; j++) {
 			world.emplace_back(new FlockAgent(300 + (i * 50), 200 + (j * 50)));
 		}
 	}
 
+	world.emplace_back(new FlockAgent(425, 300));
+
 	for (int i = 0; i < world.size(); i++) {
 		world[i]->SetSpeedCap(10);
 		world[i]->SetWorld(&world);
-		world[i]->SetNeighbourhood(150);
+		world[i]->SetNeighbourhood(100);
 	}
 
 	bool buttonDown = false;
@@ -70,6 +72,11 @@ int main( int argc, char* argv[] )
 			} else if (IsKeyDown(' ')) {
 				if (!buttonDown) {
 					pause = !pause;
+					buttonDown = true;
+				}
+			} else if (IsKeyDown('R')) {
+				if (!buttonDown) {
+					FlockAgent::ToggleNeighbourhoods();
 					buttonDown = true;
 				}
 			} else {
