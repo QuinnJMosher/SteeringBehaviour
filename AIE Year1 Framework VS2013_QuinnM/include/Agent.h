@@ -9,18 +9,19 @@
 
 class Agent;
 
-class Behaviour {
-public:
-	Behaviour(Agent* in_owner);
-	~Behaviour();
-
-	virtual Point GetForce() = 0;
-
-protected:
-	Agent* owner;
+enum BehaviourType {
+	Pursue,
+	Evade,
+	Wander,
+	Flock
 };
 
-typedef std::vector<Behaviour*> behaiviourArray;
+struct Behaviour {
+	Behaviour(BehaviourType in_type, Agent* in_target, float  in_strength);
+	BehaviourType type;
+	Agent* target;
+	float strength;//a percent value
+};
 
 class Agent : public Entity {
 public:
@@ -29,9 +30,13 @@ public:
 
 	void SetSpeedCap(float in_speedCap);
 
-	void AddPursue(Agent* in_target, float in_strength, int in_priority);
-	void AddEvade(Agent* in_target, float in_strength, int in_priority);
-	void AddWander(float in_circRadius, float in_jitter, float in_strength, float in_priority);
+	void AddPursue(Agent* in_target, float in_strength);
+	void AddEvade(Agent* in_target, float in_strength);
+	void AddWander(float in_circDist, float in_circRadius, float in_jitter, float in_strength);
+
+	void RemovePursue(Agent* in_target);
+	void RemoveEvade(Agent* in_target);
+	void RemoveWander();
 
 	void AddForce(Point force);
 	void SetForce(Point force);
@@ -45,6 +50,10 @@ public:
 	static void ToggleVelocityLine();
 
 private:
+	Point GetPersue(Agent* in_target, float in_speed);
+	Point GetEvade(Agent* in_target, float in_speed);
+	Point GetWander(float in_speed);
+
 	Point velocity;
 	bool drag;
 
@@ -52,7 +61,13 @@ private:
 
 	float maxVelocity;
 
-	std::vector<behaiviourArray> behaviourPriority;
+	std::vector<Behaviour> behaiviourArray;
+
+	//wander stuff;
+	float wanderPoint;
+	float circDist;
+	float circRadius;
+	float jitter;
 
 	static bool drawVelocity;
 
@@ -62,10 +77,5 @@ private:
 	static char* const texture;
 	static unsigned int sprite;
 };
-
-//cpp only headers (avoids circular dependency)
-#include "PursueBehaviour.h"
-#include "EvadeBehaviour.h"
-#include "WanderBehaviour.h"
 
 #endif

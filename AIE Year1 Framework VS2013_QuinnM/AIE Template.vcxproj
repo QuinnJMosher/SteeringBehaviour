@@ -93,21 +93,15 @@
     <ClCompile Include="include\Point.h" />
     <ClCompile Include="source\Agent.cpp" />
     <ClCompile Include="source\Entity.cpp" />
-    <ClCompile Include="source\EvadeBeehaviour.cpp" />
     <ClCompile Include="source\FlockAgent.cpp" />
     <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\PursueBehaviour.cpp" />
     <ClCompile Include="source\Wall.cpp" />
-    <ClCompile Include="source\WanderBehaviour.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Agent.h" />
     <ClInclude Include="include\Entity.h" />
-    <ClInclude Include="include\EvadeBehaviour.h" />
     <ClInclude Include="include\FlockAgent.h" />
-    <ClInclude Include="include\PursueBehaviour.h" />
     <ClInclude Include="include\Wall.h" />
-    <ClInclude Include="include\WanderBehaviour.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

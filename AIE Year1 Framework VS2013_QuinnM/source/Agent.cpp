@@ -7,10 +7,11 @@ bool Agent::drawVelocity = false;
 unsigned int Agent::sprite = 0;
 float const Agent::speedCap = 50;
 
-Behaviour::Behaviour(Agent* in_owner) {
-	owner = in_owner;
+Behaviour::Behaviour(BehaviourType in_type, Agent* in_target, float  in_strength) {
+	type = in_type;
+	target = in_target;
+	strength = in_strength;
 }
-Behaviour::~Behaviour() { }
 
 Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 40, 40) {
 	velocity.x = 0;
@@ -22,7 +23,7 @@ Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 40, 40) {
 
 	maxVelocity = -1;
 
-	behaviourPriority = std::vector<behaiviourArray>();
+	behaiviourArray = std::vector<Behaviour>();
 
 	if (sprite == 0) {
 		sprite = CreateSprite(texture, 40, 40, true);
@@ -35,37 +36,53 @@ void Agent::SetSpeedCap(float in_speedCap) {
 	maxVelocity = in_speedCap;
 }
 
-void Agent::AddPursue(Agent* in_target, float in_strength, int in_priority) {
-	while (behaviourPriority.size() < in_priority + 1) {
-		behaviourPriority.emplace_back(behaiviourArray());
+void Agent::AddPursue(Agent* in_target, float in_strength) {
+	behaiviourArray.emplace_back(Behaviour(Pursue, in_target, in_strength));
+}
+
+void Agent::AddEvade(Agent* in_target, float in_strength) {
+	behaiviourArray.emplace_back(Behaviour(Evade, in_target, in_strength));
+}
+
+void Agent::AddWander(float in_circDist, float in_circRadius, float in_jitter, float in_strength) {
+	circDist = in_circDist;
+	circRadius = in_circRadius;
+	jitter = in_jitter;
+	wanderPoint = 1;
+	for (int i = 0; i < behaiviourArray.size(); i++) {
+		if (behaiviourArray[i].type == Wander) {
+			behaiviourArray[i].strength = in_strength;
+			return;
+		}
 	}
-	if (maxVelocity != -1 && maxVelocity < speedCap) {
-		behaviourPriority.at(in_priority).emplace_back(new PursueBehaviour(this, in_target, maxVelocity * in_strength));
-	} else {
-		behaviourPriority.at(in_priority).emplace_back(new PursueBehaviour(this, in_target, speedCap * in_strength));
+
+	behaiviourArray.emplace_back(Behaviour(Wander, nullptr, in_strength));
+}
+
+void Agent::RemovePursue(Agent* in_target) {
+	for (int i = 0; i < behaiviourArray.size(); i++) {
+		if (behaiviourArray[i].target == in_target && behaiviourArray[i].type == Pursue) {
+			behaiviourArray.erase(behaiviourArray.begin() + i);
+			break;
+		}
 	}
 }
 
-void Agent::AddEvade(Agent* in_target, float in_strength, int in_priority) {
-	while (behaviourPriority.size() < in_priority + 1) {
-		behaviourPriority.emplace_back(behaiviourArray());
-	}
-	if (maxVelocity != -1 && maxVelocity < speedCap) {
-		behaviourPriority.at(in_priority).emplace_back(new EvadeBehaviour(this, in_target, maxVelocity * in_strength));
-	} else {
-		behaviourPriority.at(in_priority).emplace_back(new EvadeBehaviour(this, in_target, speedCap * in_strength));
+void Agent::RemoveEvade(Agent* in_target) {
+	for (int i = 0; i < behaiviourArray.size(); i++) {
+		if (behaiviourArray[i].target == in_target && behaiviourArray[i].type == Evade) {
+			behaiviourArray.erase(behaiviourArray.begin() + i);
+			break;
+		}
 	}
 }
 
-void Agent::AddWander(float in_circRadius, float in_jitter, float in_strength, float in_priority) {
-	while (behaviourPriority.size() < in_priority + 1) {
-		behaviourPriority.emplace_back(behaiviourArray());
-	}
-	if (maxVelocity != -1 && maxVelocity < speedCap) {
-		behaviourPriority.at(in_priority).emplace_back(new WanderBehaviour(this, in_circRadius, in_jitter, maxVelocity * in_strength));
-	}
-	else {
-		behaviourPriority.at(in_priority).emplace_back(new WanderBehaviour(this, in_circRadius, in_jitter, speedCap * in_strength));
+void Agent::RemoveWander() {
+	for (int i = 0; i < behaiviourArray.size(); i++) {
+		if (behaiviourArray[i].type == Wander) {
+			behaiviourArray.erase(behaiviourArray.begin() + i);
+			break;
+		}
 	}
 }
 
@@ -88,9 +105,16 @@ void Agent::Update() {
 	speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 
 	if (frame % 7 == 0) {
-		for (int i = 0; i < behaviourPriority.size(); i++) {
-			for (int j = 0; j < behaviourPriority[i].size(); j++) {
-				velocity += behaviourPriority[i][j]->GetForce();
+		for (int i = 0; i < behaiviourArray.size(); i++) {
+			switch (behaiviourArray[i].type) {
+			case Pursue:
+				velocity += GetPersue(behaiviourArray[i].target, maxVelocity * behaiviourArray[i].strength);
+				break;
+			case Evade:
+				velocity += GetEvade(behaiviourArray[i].target, maxVelocity * behaiviourArray[i].strength);
+				break;
+			case Wander:
+				velocity += GetWander(maxVelocity * behaiviourArray[i].strength);
 			}
 
 			speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
@@ -187,4 +211,115 @@ void Agent::ToggleDrag() {
 
 void Agent::ToggleVelocityLine() {
 	drawVelocity = !drawVelocity;
+}
+
+Point Agent::GetPersue(Agent* in_target, float in_speed) {
+	Point out_velocity = Point(0, 0);
+
+	//get target's position from the origin of position
+	Point targetDirectPos = (in_target->position) - position;
+	float targetDirectDist = std::sqrt((targetDirectPos.x * targetDirectPos.x) + (targetDirectPos.y * targetDirectPos.y));
+
+	if (targetDirectDist > in_speed) {//if far away find where the target is going
+		Point TargetRelPos = (in_target->position + in_target->GetVelocity()) - position;
+		float targetRelDist = std::sqrt((TargetRelPos.x * TargetRelPos.x) + (TargetRelPos.y * TargetRelPos.y));
+		TargetRelPos.x /= targetRelDist;
+		TargetRelPos.y /= targetRelDist;
+
+		out_velocity.x = (TargetRelPos.x * in_speed);
+		out_velocity.y = (TargetRelPos.y * in_speed);
+
+	}
+	else {//if they're close then go strait to them
+		targetDirectPos.x /= targetDirectDist;
+		targetDirectPos.y /= targetDirectDist;
+
+		//add to velocity
+		out_velocity.x = (targetDirectPos.x * (in_speed - targetDirectDist));
+		out_velocity.y = (targetDirectPos.y * (in_speed - targetDirectDist));
+
+	}
+
+	return out_velocity;
+}
+
+Point Agent::GetEvade(Agent* in_target, float in_speed) {
+	Point out_velocity = Point(0, 0);
+
+	//get target's position from the origin of position
+	Point targetDirectPos = (in_target->position) - position;
+	float targetDirectDist = std::sqrt((targetDirectPos.x * targetDirectPos.x) + (targetDirectPos.y * targetDirectPos.y));
+
+	if (targetDirectDist > in_speed) {//if far away find where the target is going
+		Point TargetRelPos = (in_target->position + in_target->GetVelocity()) - position;
+		float targetRelDist = std::sqrt((TargetRelPos.x * TargetRelPos.x) + (TargetRelPos.y * TargetRelPos.y));
+		TargetRelPos.x /= targetRelDist;
+		TargetRelPos.y /= targetRelDist;
+
+		out_velocity.x = (TargetRelPos.x * (in_speed * -1));
+		out_velocity.y = (TargetRelPos.y * (in_speed * -1));
+
+	}
+	else {//if they're close then go strait to them
+		targetDirectPos.x /= targetDirectDist;
+		targetDirectPos.y /= targetDirectDist;
+
+		//add to velocity
+		out_velocity.x = (targetDirectPos.x * ((in_speed - targetDirectDist) * -1));
+		out_velocity.y = (targetDirectPos.y * ((in_speed - targetDirectDist) * -1));
+
+	}
+
+	return out_velocity;
+}
+
+Point Agent::GetWander(float in_speed) {
+	Point out;
+
+	//find circle position (Where agent position is the origin)
+	Point currentDir = velocity;
+	float currentSpeed = std::sqrt((currentDir.x * currentDir.x) + (currentDir.y * currentDir.y));
+	if (currentSpeed > 0.0000001 && currentSpeed < 0.0000001) { //float eq for currentSpeed != 0
+		currentDir.x /= currentSpeed;
+		currentDir.y /= currentSpeed;
+	}
+
+	Point circlePos = currentDir * circDist;
+
+	//generate float from 0-2
+	wanderPoint += ((((rand() % 200) - 100) / 1000.0f)) * jitter;
+	if (wanderPoint < 0.0f) {
+		wanderPoint *= -1;
+	}
+	while (wanderPoint > 2.0f)  {
+		wanderPoint -= 2.0f;
+	}
+
+	//find position on circle at the generated number in radians
+	Point RadPos;
+	RadPos.x = circlePos.x + circRadius * std::cos(wanderPoint * std::_Pi);
+	RadPos.y = circlePos.y + circRadius * std::sin(wanderPoint * std::_Pi);
+
+	//normalize radpos
+	float RadMag = std::sqrt((RadPos.x * RadPos.x) + (RadPos.y * RadPos.y));
+	RadPos.x = RadPos.x / RadMag;
+	RadPos.y = RadPos.y / RadMag;
+
+	//set radpos's magnitude to the radius
+	RadPos.x = RadPos.x * circRadius;
+	RadPos.y = RadPos.y * circRadius;
+
+	//add the new direction to our current velocity 
+	out = RadPos;
+
+	//compensate to keep velocity's magnitude the same
+	float speed = std::sqrt((out.x * out.x) + (out.y * out.y));
+
+	out.x = out.x / speed;
+	out.y = out.y / speed;
+
+	out.x = out.x * in_speed;
+	out.y = out.y * in_speed;
+
+	return out;
 }
