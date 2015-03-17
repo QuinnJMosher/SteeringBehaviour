@@ -63,7 +63,7 @@ void FlockAgent::Update() {
 		//flockingVelocity += Alignment(maxVelocity * 0.4f);
 		flockingVelocity += Cohesion(maxVelocity * 0.3f);
 
-		velocity = flockingVelocity;
+		velocity += flockingVelocity;
 	//}
 
 	//cap speed
