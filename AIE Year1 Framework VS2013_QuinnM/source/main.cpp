@@ -3,7 +3,6 @@
 #include <vector>
 #include <ctime>
 #include "Agent.h"
-#include "FlockAgent.h"
 #include "Wall.h"
 
 //constant vars
@@ -17,28 +16,16 @@ int main( int argc, char* argv[] )
 
 	srand(time(NULL));
 
-	Agent agent1 = Agent(450, 300);
-	Agent agent2 = Agent(400, 250);
-
-	agent1.SetSpeedCap(10);
-	agent1.AddWander(20, 10, 1, 1);
-
-	agent2.SetSpeedCap(10);
-	agent2.AddPursue(&agent1, 1);
-
-	std::vector<FlockAgent*> world = std::vector<FlockAgent*>();
-	for (int i = 0; i < 5; i++) {
+	std::vector<Agent*> world = std::vector<Agent*>();
+	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 5; j++) {
-			world.emplace_back(new FlockAgent(200 + (i * 50), 100 + (j * 50)));
+			world.emplace_back(new Agent(200 + (i * 50), 100 + (j * 50)));
 		}
 	}
 
-	world.emplace_back(new FlockAgent(425, 300));
-
 	for (int i = 0; i < world.size(); i++) {
 		world[i]->SetSpeedCap(10);
-		world[i]->SetWorld(&world);
-		world[i]->SetNeighbourhood(100);
+		world[i]->AddToFlock(1);
 	}
 
 	bool buttonDown = false;
@@ -51,46 +38,36 @@ int main( int argc, char* argv[] )
 		time += GetDeltaTime();
 
 		//limit framerate
-		if (time > 1.0f / 60.0f) {
-			time -= 1.0f / 60.f;
+		if (time > 1.0f / 30.0f) {
+			time -= 1.0f / 30.f;
 
 			if (!pause) {
 				if (IsKeyDown('W')) {
 					world[0]->AddForce(Point(0.0f, 2.0f));
-					agent1.AddForce(Point(0.0f, 2.0f));
 				}
 
 				if (IsKeyDown('S')) {
 					world[0]->AddForce(Point(0.0f, -2.0f));
-					agent1.AddForce(Point(0.0f, -2.0f));
 				}
 
 				if (IsKeyDown('A')) {
 					world[0]->AddForce(Point(-2.0f, 0.0f));
-					agent1.AddForce(Point(-2.0f, 0.0f));
 				}
 
 				if (IsKeyDown('D')) {
 					world[0]->AddForce(Point(2.0f, 0.0f));
-					agent1.AddForce(Point(2.0f, 0.0f));
 				}
 			}
 
 			//key to toggle velocity lines
 		    if (IsKeyDown('L')) {
 				if (!buttonDown) {
-					FlockAgent::ToggleVelocityLine();
 					Agent::ToggleVelocityLine();
 					buttonDown = true;
 				}
 			} else if (IsKeyDown(' ')) {
 				if (!buttonDown) {
 					pause = !pause;
-					buttonDown = true;
-				}
-			} else if (IsKeyDown('R')) {
-				if (!buttonDown) {
-					FlockAgent::ToggleNeighbourhoods();
 					buttonDown = true;
 				}
 			} else {
@@ -101,9 +78,6 @@ int main( int argc, char* argv[] )
 				for (int i = 0; i < world.size(); i++) {
 					world[i]->Update();
 				}
-
-				agent1.Update();
-				agent2.Update();
 			}
 		}
 
@@ -112,9 +86,6 @@ int main( int argc, char* argv[] )
 		for (int i = 0; i < world.size(); i++) {
 			world[i]->Draw();
 		}
-		
-		agent1.Draw();
-		agent2.Draw();
 
     } while(!FrameworkUpdate());
 

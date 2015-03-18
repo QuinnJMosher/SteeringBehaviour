@@ -33,10 +33,15 @@ public:
 	void AddPursue(Agent* in_target, float in_strength);
 	void AddEvade(Agent* in_target, float in_strength);
 	void AddWander(float in_circDist, float in_circRadius, float in_jitter, float in_strength);
+	void AddToFlock(float in_strength);
 
 	void RemovePursue(Agent* in_target);
 	void RemoveEvade(Agent* in_target);
 	void RemoveWander();
+	void RemoveFromFlock();
+
+	static void SetFlockBallence(float in_separation, float in_alignment, float in_cohesion);
+	static void SetNeighbourhoodSize(float in_size);
 
 	void AddForce(Point force);
 	void SetForce(Point force);
@@ -53,6 +58,10 @@ private:
 	Point GetPersue(Agent* in_target, float in_speed);
 	Point GetEvade(Agent* in_target, float in_speed);
 	Point GetWander(float in_speed);
+	Point GetFlock(float in_speed);
+	Point Separation(float in_power, std::vector<Agent*> neighbourhood);
+	Point Alignment(float in_power, std::vector<Agent*> neighbourhood);
+	Point Cohesion(float in_power, std::vector<Agent*> neighbourhood);
 
 	Point velocity;
 	bool drag;
@@ -68,6 +77,13 @@ private:
 	float circDist;
 	float circRadius;
 	float jitter;
+
+	//flock Vars
+	static std::vector<Agent*> flockingAgents;
+	static float sepatationPow;
+	static float allignmentPow;
+	static float cohesionPow;
+	static float neighbourhoodSize;
 
 	static bool drawVelocity;
 

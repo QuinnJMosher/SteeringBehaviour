@@ -60,7 +60,7 @@ void FlockAgent::Update() {
 		Point flockingVelocity = Point(0, 0);
 
 		flockingVelocity += Separation(maxVelocity * 0.65f);
-		flockingVelocity += Alignment(maxVelocity * 0.05f);
+		flockingVelocity += Alignment(maxVelocity * 0.03f);
 		flockingVelocity += Cohesion(maxVelocity * 0.3f);
 
 		velocity += flockingVelocity;
