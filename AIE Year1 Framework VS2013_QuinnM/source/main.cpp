@@ -18,14 +18,23 @@ int main( int argc, char* argv[] )
 
 	std::vector<Agent*> world = std::vector<Agent*>();
 	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 5; j++) {
+		for (int j = 0; j < 3; j++) {
 			world.emplace_back(new Agent(200 + (i * 50), 100 + (j * 50)));
 		}
 	}
 
+	Agent agent1 = Agent(100, 100);
+
+	agent1.AddWander(10, 10, 1, 1.0f);
+
+	agent1.SetSpeedCap(14);
+
 	for (int i = 0; i < world.size(); i++) {
-		world[i]->SetSpeedCap(10);
-		world[i]->AddToFlock(1);
+
+		world[i]->SetSpeedCap(7);
+		world[i]->AddToFlock(0.7f);
+		world[i]->AddEvade(&agent1, 0.1f);
+		world[i]->AddWander(5, 5, 1, 0.3f);
 	}
 
 	bool buttonDown = false;
@@ -38,8 +47,8 @@ int main( int argc, char* argv[] )
 		time += GetDeltaTime();
 
 		//limit framerate
-		if (time > 1.0f / 30.0f) {
-			time -= 1.0f / 30.f;
+		if (time > 1.0f / 60.0f) {
+			time -= 1.0f / 60.0f;
 
 			if (!pause) {
 				if (IsKeyDown('W')) {
@@ -78,6 +87,7 @@ int main( int argc, char* argv[] )
 				for (int i = 0; i < world.size(); i++) {
 					world[i]->Update();
 				}
+				agent1.Update();
 			}
 		}
 
@@ -86,6 +96,7 @@ int main( int argc, char* argv[] )
 		for (int i = 0; i < world.size(); i++) {
 			world[i]->Draw();
 		}
+		agent1.Draw();
 
     } while(!FrameworkUpdate());
 

@@ -11,7 +11,7 @@ std::vector<Agent*> Agent::flockingAgents = std::vector<Agent*>();
 float Agent::sepatationPow = 0.6;
 float Agent::allignmentPow = 0.03;
 float Agent::cohesionPow = 0.45;
-float Agent::neighbourhoodSize = 55;
+float Agent::neighbourhoodSize = 70;
 
 Behaviour::Behaviour(BehaviourType in_type, Agent* in_target, float  in_strength) {
 	type = in_type;
@@ -24,8 +24,6 @@ Agent::Agent(float in_x, float in_y) : Entity(in_x, in_y, 20, 20) {
 	velocity.y = 0;
 
 	drag = true;
-
-	frame = 0;
 
 	maxVelocity = -1;
 
@@ -105,28 +103,24 @@ Point Agent::GetVelocity() {
 }
 
 void Agent::Update() {
-	//frame++;
 	float speed;
 
-	//if (frame % 7 == 0) {
-		for (int i = 0; i < behaiviourArray.size(); i++) {
-			switch (behaiviourArray[i].type) {
-			case Pursue:
-				velocity += GetPersue(behaiviourArray[i].target, maxVelocity * behaiviourArray[i].strength);
-				break;
-			case Evade:
-				velocity += GetEvade(behaiviourArray[i].target, maxVelocity * behaiviourArray[i].strength);
-				break;
-			case Wander:
-				velocity += GetWander(maxVelocity * behaiviourArray[i].strength);
-				break;
-			case Flock:
-				velocity += GetFlock(maxVelocity * behaiviourArray[i].strength);
-				break;
-			}
-
+	for (int i = 0; i < behaiviourArray.size(); i++) {
+		switch (behaiviourArray[i].type) {
+		case Pursue:
+			velocity += GetPersue(behaiviourArray[i].target, maxVelocity * behaiviourArray[i].strength);
+			break;
+		case Evade:
+			velocity += GetEvade(behaiviourArray[i].target, maxVelocity * behaiviourArray[i].strength);
+			break;
+		case Wander:
+			velocity += GetWander(maxVelocity * behaiviourArray[i].strength);
+			break;
+		case Flock:
+			velocity += GetFlock(maxVelocity * behaiviourArray[i].strength);
+			break;
 		}
-	//}
+	}
 
 	speed = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
 
@@ -396,16 +390,16 @@ Point Agent::GetFlock(float in_speed) {
 	return out;
 }
 
-Point Agent::Separation(float in_power, std::vector<Agent*> neighbourhood) {
+Point Agent::Separation(float in_power, std::vector<Agent*>& ref_neighbourhood) {
 
-	if (neighbourhood.size() < 3) {
+	if (ref_neighbourhood.size() == 0) {
 		return Point(0, 0);
 	}
 
 	Point totalRepulsion = Point(0, 0);
 
-	for (int i = 0; i < neighbourhood.size(); i++) {
-		Point currentRepulsion = (neighbourhood[i]->position - position) * -1;
+	for (int i = 0; i < ref_neighbourhood.size(); i++) {
+		Point currentRepulsion = (ref_neighbourhood[i]->position - position) * -1;
 		float repulseMag = std::sqrt(std::pow(currentRepulsion.x, 2) + std::pow(currentRepulsion.y, 2));
 
 		if (repulseMag < neighbourhoodSize / 2) {
@@ -428,19 +422,19 @@ Point Agent::Separation(float in_power, std::vector<Agent*> neighbourhood) {
 	return totalRepulsion;
 }
 
-Point Agent::Alignment(float in_power, std::vector<Agent*> neighbourhood) {
-	if (neighbourhood.size() < 3) {
+Point Agent::Alignment(float in_power, std::vector<Agent*>& ref_neighbourhood) {
+	if (ref_neighbourhood.size() < 3) {
 		return Point(0, 0);
 	}
 
 	Point desiredVelocity = Point(0, 0);
 
-	for (int i = 0; i < neighbourhood.size(); i++) {
-		desiredVelocity += neighbourhood[i]->GetVelocity();
+	for (int i = 0; i < ref_neighbourhood.size(); i++) {
+		desiredVelocity += ref_neighbourhood[i]->GetVelocity();
 	}
 
-	desiredVelocity.x /= neighbourhood.size();
-	desiredVelocity.y /= neighbourhood.size();
+	desiredVelocity.x /= ref_neighbourhood.size();
+	desiredVelocity.y /= ref_neighbourhood.size();
 
 	desiredVelocity -= velocity;
 
@@ -459,22 +453,26 @@ Point Agent::Alignment(float in_power, std::vector<Agent*> neighbourhood) {
 	return desiredVelocity;
 }
 
-Point Agent::Cohesion(float in_power, std::vector<Agent*> neighbourhood) {
-	if (neighbourhood.size() == 0) {
+Point Agent::Cohesion(float in_power, std::vector<Agent*>& ref_neighbourhood) {
+	if (ref_neighbourhood.size() < 3) {
 		return Point(0, 0);
 	}
 
 	Point averagePos = Point(0, 0);
 	int numItems = 0;
 
-	for (int i = 0; i < neighbourhood.size(); i++) {
-		Point currentDist = neighbourhood[i]->position - position;
+	for (int i = 0; i < ref_neighbourhood.size(); i++) {
+		Point currentDist = ref_neighbourhood[i]->position - position;
 		float posDist = std::sqrt(std::pow(currentDist.x, 2) + std::pow(currentDist.y, 2));
 
 		if (posDist > neighbourhoodSize / 2) {
-			averagePos += neighbourhood[i]->position;
+			averagePos += ref_neighbourhood[i]->position;
 			numItems++;
 		}
+	}
+
+	if (numItems == 0) {
+		return Point(0, 0);
 	}
 
 	averagePos.x /= numItems;

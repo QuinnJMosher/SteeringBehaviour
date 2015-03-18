@@ -55,19 +55,19 @@ public:
 	static void ToggleVelocityLine();
 
 private:
+	//behavior meathods
 	Point GetPersue(Agent* in_target, float in_speed);
 	Point GetEvade(Agent* in_target, float in_speed);
 	Point GetWander(float in_speed);
+	//flocking behaviors
 	Point GetFlock(float in_speed);
-	Point Separation(float in_power, std::vector<Agent*> neighbourhood);
-	Point Alignment(float in_power, std::vector<Agent*> neighbourhood);
-	Point Cohesion(float in_power, std::vector<Agent*> neighbourhood);
+	Point Separation(float in_power, std::vector<Agent*>& ref_neighbourhood);
+	Point Alignment(float in_power, std::vector<Agent*>& ref_neighbourhood);
+	Point Cohesion(float in_power, std::vector<Agent*>& ref__neighbourhood);
 
+	//physics
 	Point velocity;
 	bool drag;
-
-	int frame;
-
 	float maxVelocity;
 
 	std::vector<Behaviour> behaiviourArray;
